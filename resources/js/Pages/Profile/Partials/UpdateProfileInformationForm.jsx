@@ -11,6 +11,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         name: user.name,
         email: user.email,
+        eth_address: user.eth_address,
     });
 
     const submit = (e) => {
@@ -57,6 +58,21 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         handleChange={(e) => setData('email', e.target.value)}
                         required
                         autoComplete="username"
+                    />
+
+                    <InputError className="mt-2" message={errors.email} />
+                </div>
+
+                <div>
+                    <InputLabel for="eth_address" value="eth_address" />
+
+                    <TextInput
+                        id="eth_address"
+                        className="mt-1 block w-full"
+                        value={data.eth_address}
+                        handleChange={(e) => setData('eth_address', e.target.value)}
+                        required
+                        autoComplete="eth_address"
                     />
 
                     <InputError className="mt-2" message={errors.email} />

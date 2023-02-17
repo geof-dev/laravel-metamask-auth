@@ -22,7 +22,7 @@ export default function LoginMetamaskButton() {
             })
         });
     }
-    
+
     return (
         <div className="flex items-center flex-col mt-4">
             <PrimaryButton className="ml-4" onClick={metamaskLogin} >
