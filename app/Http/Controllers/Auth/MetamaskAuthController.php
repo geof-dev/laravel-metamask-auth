@@ -9,13 +9,21 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Elliptic\EC;
+use kornrunner\Keccak;
 
 class MetamaskAuthController extends Controller
 {
     public function authenticate(Request $request): RedirectResponse {
-        if(empty($request->eth_address) || (!$user = User::query()->where('eth_address', $request->eth_address)->first())){
+        $nonce = session()->get('metamask-nonce');
+        $message = $this->getSignatureMessage($nonce);
+
+        if(empty($request->eth_address) ||
+            (!$this->verifySignature($message, $request->signature, $request->eth_address)) ||
+            (!$user = User::query()->where('eth_address', $request->eth_address)->first())
+        ){
             throw ValidationException::withMessages([
-                'metamask' => trans('auth.failed'),
+                'error' => trans('auth.failed'),
             ]);
         }
         Auth::login($user);
@@ -23,14 +31,11 @@ class MetamaskAuthController extends Controller
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
-    /*public function signature(Request $request) {
-        // Generate some random nonce
+    public function signature(Request $request) {
         $code = \Str::random(8);
 
-        // Save in session
-        session()->put('web3-nonce', $code);
+        session()->put('metamask-nonce', $code);
 
-        // Create message with nonce
         return $this->getSignatureMessage($code);
     }
 
@@ -39,5 +44,22 @@ class MetamaskAuthController extends Controller
         return __("I have read and accept the terms and conditions.\nPlease sign me in.\n\nSecurity code (you can ignore this): :nonce", [
             'nonce' => $code
         ]);
-    }*/
+    }
+
+    protected function verifySignature($message, $signature, $address): bool
+    {
+        $msglen = strlen($message);
+        $hash   = Keccak::hash("\x19Ethereum Signed Message:\n{$msglen}{$message}", 256);
+        $sign   = ["r" => substr($signature, 2, 64),
+            "s" => substr($signature, 66, 64)];
+        $recid  = ord(hex2bin(substr($signature, 130, 2))) - 27;
+        if ($recid != ($recid & 1))
+            return false;
+
+        $ec = new EC('secp256k1');
+        $pubkey = $ec->recoverPubKey($hash, $sign, $recid);
+        $derived_address = "0x" . substr(Keccak::hash(substr(hex2bin($pubkey->encode("hex")), 1), 256), 24);
+
+        return $address == $derived_address;
+    }
 }
