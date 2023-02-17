@@ -64,7 +64,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                 </div>
 
                 <div>
-                    <InputLabel for="eth_address" value="eth_address" />
+                    <InputLabel for="eth_address" value="Ethereum address" />
 
                     <TextInput
                         id="eth_address"
