@@ -1,5 +1,7 @@
 # MetaMask Auth with Laravel Breeze + React + ethers.js v6
 
+Medium post : https://medium.com/@independencedev/metamask-auth-with-laravel-breeze-react-ethers-js-v6-553045df4370
+
 Launch the back on docker
 
 `php composer install`
